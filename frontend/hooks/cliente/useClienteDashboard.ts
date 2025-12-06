@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { notification } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { DashboardData } from './types';
+import { DashboardData } from '../../types/cliente/types';
 
 export function useClienteDashboard() {
   const router = useRouter();

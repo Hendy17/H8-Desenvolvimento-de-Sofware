@@ -1,7 +1,7 @@
 import { Layout, Card, Spin, Typography, Row, Col, Statistic, Button, Modal, Form, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { useClienteDashboard } from './useClienteDashboard';
+import { useClienteDashboard } from '../../hooks/cliente/useClienteDashboard';
 import styles from './styles.module.css';
 
 const { Content } = Layout;
