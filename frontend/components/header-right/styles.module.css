@@ -1,0 +1,77 @@
+.container {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 64px;
+  background: #001529;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  z-index: 1000;
+}
+.icon {
+  margin-top: 16px;
+  font-size: 22px;
+}
+.gearButton {
+  margin-top: 12px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+.bottom {
+  padding: 12px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.button {
+  background: #1890ff;
+  border: none;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.menuActions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.primary { background: #52c41a; color: #fff; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; }
+.secondary { background: #1890ff; color: #fff; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; }
+.modalBackdrop {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  width: 420px;
+}
+.input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cancel { background: #f0f0f0; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.submit { background: #1890ff; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.result { margin-top: 12px; background: #fafafa; padding: 8px; border-radius: 4px; }

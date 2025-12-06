@@ -1,0 +1,25 @@
+{
+  "name": "accounting-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "clean": "rm -rf .next && echo 'Removed .next'"
+  },
+  "dependencies": {
+    "antd": "^5.6.0",
+    "axios": "^1.5.0",
+    "next": "^14.0.0",
+    "rc-util": "^5.44.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^3.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "@types/react": "^18.2.21",
+    "typescript": "^5.1.6"
+  }
+}
