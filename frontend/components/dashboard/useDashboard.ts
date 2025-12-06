@@ -11,7 +11,8 @@ export default function useDashboard() {
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/auth/me', { withCredentials: true });
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
         if (res.data && res.data.email) {
           setUser(res.data);
         } else {
@@ -26,7 +27,8 @@ export default function useDashboard() {
 
   const logout = async () => {
     try {
-      await axios.post('http://localhost:3001/auth/logout', {}, { withCredentials: true });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      await axios.post(`${apiUrl}/auth/logout`, {}, { withCredentials: true });
     } catch (err) {
       // ignore
     }

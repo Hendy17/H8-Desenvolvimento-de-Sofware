@@ -20,7 +20,8 @@ export function useClienteDashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:3001/clients/${cnpj}/expenses/summary`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await axios.get(`${apiUrl}/clients/${cnpj}/expenses/summary`, {
           withCredentials: true,
         });
         setData(response.data);
@@ -51,7 +52,8 @@ export function useClienteDashboard() {
         const form = new FormData();
         // @ts-ignore
         form.append('file', f.originFileObj);
-        const response = await axios.post(`http://localhost:3001/clients/attachments/${cnpj}`, form, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await axios.post(`${apiUrl}/clients/attachments/${cnpj}`, form, {
           headers: { 'Content-Type': 'multipart/form-data' },
           withCredentials: true
         });

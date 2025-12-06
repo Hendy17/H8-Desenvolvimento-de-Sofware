@@ -11,7 +11,8 @@ export default function useLoginForm() {
   const onFinish = async (values: LoginValues) => {
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:3001/auth/login', values, { withCredentials: true });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const res = await axios.post(`${apiUrl}/auth/login`, values, { withCredentials: true });
       // backend sets HttpOnly cookie; just redirect
       message.success(`Bem-vindo, ${values.email}`);
       router.push('/dashboard');

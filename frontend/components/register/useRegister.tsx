@@ -12,11 +12,12 @@ export default function useRegister() {
   const onFinish = async (values: RegisterValues) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:3001/auth/register', values);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      await axios.post(`${apiUrl}/auth/register`, values);
       // after successful registration, attempt auto-login
       setAutoLogging(true);
       try {
-            const loginRes = await axios.post('http://localhost:3001/auth/login', values, { withCredentials: true });
+            const loginRes = await axios.post(`${apiUrl}/auth/login`, values, { withCredentials: true });
         // backend sets HttpOnly cookie; don't store token in localStorage
         message.success('Bem-vindo!');
         setAutoLogging(false);

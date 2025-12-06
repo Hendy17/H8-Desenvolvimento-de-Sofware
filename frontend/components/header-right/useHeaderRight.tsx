@@ -21,7 +21,8 @@ export default function useHeaderRight() {
     }
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:3001/clients/search`, { params: { cnpj: normalized } });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const res = await axios.get(`${apiUrl}/clients/search`, { params: { cnpj: normalized } });
       setClient(res.data);
       notification.success({ message: 'Cliente encontrado' });
       return res.data;

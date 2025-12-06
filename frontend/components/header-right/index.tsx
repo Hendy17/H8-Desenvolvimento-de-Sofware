@@ -71,7 +71,8 @@ export default function HeaderRight() {
     if (!cnpj || !name) return notification.warning({ message: 'CNPJ e Nome são obrigatórios' });
     setCreating(true);
     try {
-      const res = await axios.post('http://localhost:3001/clients', { cnpj, name, address });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const res = await axios.post(`${apiUrl}/clients`, { cnpj, name, address });
       notification.success({ message: 'Cliente criado', description: res.data.name || '' });
       setCreateOpen(false);
     } catch (err: any) {
@@ -136,7 +137,7 @@ export default function HeaderRight() {
                   <div style={{ fontSize: 12, color: '#666' }}>{new Date(a.createdAt).toLocaleString()}</div>
                 </div>
                 <div>
-                  <a href={`http://localhost:3001/clients/attachments/${a.id}/download`} target="_blank" rel="noreferrer">
+                  <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/clients/attachments/${a.id}/download`} target="_blank" rel="noreferrer">
                     <Button>Download</Button>
                   </a>
                 </div>
@@ -185,11 +186,12 @@ export default function HeaderRight() {
           if (!cnpj) return notification.warning({ message: 'Informe o CNPJ' });
           if (!fileList || fileList.length === 0) return notification.warning({ message: 'Selecione ao menos um arquivo' });
           try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
             for (const f of fileList) {
               const form = new FormData();
               // @ts-ignore
               form.append('file', f.originFileObj);
-              await axios.post(`http://localhost:3001/clients/attachments/${cnpj}`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+              await axios.post(`${apiUrl}/clients/attachments/${cnpj}`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
             }
             notification.success({ message: 'Arquivos enviados' });
             setUploadOpen(false);
