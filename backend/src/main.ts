@@ -9,7 +9,7 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = process.env.PORT_BACKEND || 3001;
+  const port = process.env.PORT || process.env.PORT_BACKEND || 3001;
   const front = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
   
   // Configure CORS for development and production
