@@ -139,6 +139,7 @@ export class AuthService {
       // we don't set entities for schema sync here; migrations will create required tables
       migrations: [CreateTenantMeta1701640000000],
       synchronize: false,
+      ssl: dbConfig.ssl || false, // Use SSL from dbConfig if present
     });
 
     try {
