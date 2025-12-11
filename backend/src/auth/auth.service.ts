@@ -57,14 +57,29 @@ export class AuthService {
     // generate tenant database name
     const dbName = `accounting_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
+    // Parse DATABASE_URL if available, otherwise use individual vars
+    let dbConfig: any;
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      dbConfig = {
+        host: url.hostname,
+        port: parseInt(url.port) || 5432,
+        user: url.username,
+        password: url.password,
+        database: url.pathname.slice(1), // remove leading /
+      };
+    } else {
+      dbConfig = {
+        host: process.env.POSTGRES_HOST || 'localhost',
+        port: Number(process.env.POSTGRES_PORT || 5432),
+        user: process.env.POSTGRES_USER || 'account',
+        password: process.env.POSTGRES_PASSWORD || 'accountpass',
+        database: process.env.POSTGRES_DB || process.env.DB || 'accounting',
+      };
+    }
+
     // create database using pg client
-    const client = new Client({
-      host: process.env.POSTGRES_HOST || 'localhost',
-      port: Number(process.env.POSTGRES_PORT || 5432),
-      user: process.env.POSTGRES_USER || 'account',
-      password: process.env.POSTGRES_PASSWORD || 'accountpass',
-      database: process.env.POSTGRES_DB || process.env.DB || 'accounting',
-    });
+    const client = new Client(dbConfig);
 
     await client.connect();
 
@@ -92,13 +107,8 @@ export class AuthService {
         const superUser = process.env.POSTGRES_SUPERUSER;
         const superPass = process.env.POSTGRES_SUPERPASSWORD;
         if (superUser && superPass) {
-          const superClient = new Client({
-            host: process.env.POSTGRES_HOST || 'localhost',
-            port: Number(process.env.POSTGRES_PORT || 5432),
-            user: superUser,
-            password: superPass,
-            database: process.env.POSTGRES_DB || 'postgres',
-          });
+          const superDbConfig = { ...dbConfig, user: superUser, password: superPass };
+          const superClient = new Client(superDbConfig);
           try {
             await superClient.connect();
             await superClient.query(`CREATE DATABASE "${dbName}" OWNER "${dbUser}"`);
@@ -120,10 +130,10 @@ export class AuthService {
     // Initialize tenant DB schema via migrations (safer for production)
     const tenantDataSource = new DataSource({
       type: 'postgres',
-      host: process.env.POSTGRES_HOST || 'localhost',
-      port: Number(process.env.POSTGRES_PORT || 5432),
-      username: process.env.POSTGRES_USER || 'account',
-      password: process.env.POSTGRES_PASSWORD || 'accountpass',
+      host: dbConfig.host,
+      port: dbConfig.port,
+      username: dbConfig.user,
+      password: dbConfig.password,
       database: dbName,
       // we don't set entities for schema sync here; migrations will create required tables
       migrations: [CreateTenantMeta1701640000000],
