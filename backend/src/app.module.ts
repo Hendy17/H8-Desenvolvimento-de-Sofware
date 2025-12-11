@@ -10,11 +10,15 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const dbUrl = process.env.DATABASE_URL || 'postgresql://accounting:accountpass@localhost:5432/accounting';
+console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('🔍 Using DB URL:', dbUrl.replace(/:[^:@]+@/, ':***@')); // Hide password
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL || 'postgresql://accounting:accountpass@localhost:5432/accounting',
+      url: dbUrl,
       entities: [User, ClientEntity, Attachment, Expense],
       synchronize: true,
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
