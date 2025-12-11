@@ -67,6 +67,7 @@ export class AuthService {
         user: url.username,
         password: url.password,
         database: url.pathname.slice(1), // remove leading /
+        ssl: { rejectUnauthorized: false }, // SSL required for Render
       };
     } else {
       dbConfig = {
