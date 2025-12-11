@@ -12,26 +12,13 @@ dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(
-      process.env.DATABASE_URL
-        ? {
-            type: 'postgres',
-            url: process.env.DATABASE_URL,
-            entities: [User, ClientEntity, Attachment, Expense],
-            synchronize: true,
-            ssl: { rejectUnauthorized: false }
-          }
-        : {
-            type: 'postgres',
-            host: process.env.POSTGRES_HOST || 'localhost',
-            port: Number(process.env.POSTGRES_PORT || 5432),
-            username: process.env.POSTGRES_USER || 'account',
-            password: process.env.POSTGRES_PASSWORD || 'accountpass',
-            database: process.env.POSTGRES_DB || 'accounting',
-            entities: [User, ClientEntity, Attachment, Expense],
-            synchronize: true
-          }
-    ),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL || 'postgresql://accounting:accountpass@localhost:5432/accounting',
+      entities: [User, ClientEntity, Attachment, Expense],
+      synchronize: true,
+      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    }),
     AuthModule,
     ClientsModule
   ]
