@@ -12,19 +12,25 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
     const result = await this.authService.login(body.email, body.password);
     const token = result?.access_token;
     if (token) {
       const maxAge = 1000 * 60 * 60; // 1 hour
       const isProduction = process.env.NODE_ENV === 'production';
-      console.log('🍪 Setting cookie - isProduction:', isProduction, 'sameSite:', isProduction ? 'none' : 'lax');
-      res.cookie('token', token, { 
+      
+      const cookieOptions = { 
         httpOnly: true, 
         secure: isProduction, 
-        sameSite: isProduction ? 'none' : 'lax', 
-        maxAge 
-      });
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+        maxAge,
+        path: '/'
+      };
+      
+      console.log('🍪 Setting cookie - Origin:', req.headers.origin);
+      console.log('🍪 Cookie options:', cookieOptions);
+      
+      res.cookie('token', token, cookieOptions);
     }
     return { message: 'Login bem-sucedido' };
   }
@@ -32,7 +38,13 @@ export class AuthController {
   @Post('logout')
   @HttpCode(200)
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('token');
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/'
+    });
     return { message: 'Logout realizado' };
   }
 
