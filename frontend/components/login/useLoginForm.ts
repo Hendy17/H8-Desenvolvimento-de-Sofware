@@ -13,7 +13,12 @@ export default function useLoginForm() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const res = await axios.post(`${apiUrl}/auth/login`, values, { withCredentials: true });
-      // backend sets HttpOnly cookie; just redirect
+      
+      // Armazenar token se retornado (produção cross-domain)
+      if (res.data?.access_token) {
+        localStorage.setItem('token', res.data.access_token);
+      }
+      
       message.success(`Bem-vindo, ${values.email}`);
       router.push('/dashboard');
     } catch (err: any) {

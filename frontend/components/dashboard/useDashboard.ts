@@ -12,13 +12,22 @@ export default function useDashboard() {
     const fetchMe = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const res = await axios.get(`${apiUrl}/auth/me`, { 
+          withCredentials: true,
+          headers 
+        });
+        
         if (res.data && res.data.email) {
           setUser(res.data);
         } else {
+          localStorage.removeItem('token');
           router.replace('/login');
         }
       } catch (err) {
+        localStorage.removeItem('token');
         router.replace('/login');
       }
     };
@@ -28,10 +37,17 @@ export default function useDashboard() {
   const logout = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      await axios.post(`${apiUrl}/auth/logout`, {}, { withCredentials: true });
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      await axios.post(`${apiUrl}/auth/logout`, {}, { 
+        withCredentials: true,
+        headers 
+      });
     } catch (err) {
       // ignore
     }
+    localStorage.removeItem('token');
     router.replace('/login');
   };
 

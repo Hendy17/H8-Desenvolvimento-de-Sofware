@@ -15,10 +15,12 @@ export class AuthController {
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
     const result = await this.authService.login(body.email, body.password);
     const token = result?.access_token;
+    
     if (token) {
       const maxAge = 1000 * 60 * 60; // 1 hour
       const isProduction = process.env.NODE_ENV === 'production';
       
+      // Tentar configurar cookie (funciona em localhost)
       const cookieOptions = { 
         httpOnly: true, 
         secure: isProduction, 
@@ -32,7 +34,12 @@ export class AuthController {
       
       res.cookie('token', token, cookieOptions);
     }
-    return { message: 'Login bem-sucedido' };
+    
+    // Retornar token no body para produção (cross-domain)
+    return { 
+      message: 'Login bem-sucedido', 
+      access_token: token
+    };
   }
 
   @Post('logout')
@@ -53,10 +60,20 @@ export class AuthController {
   @Header('Pragma', 'no-cache')
   @Header('Expires', '0')
   async me(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    // read token from cookie (requires cookie-parser)
-    const token = (req as any).cookies?.token as string | undefined;
-    console.log('🔐 /auth/me - Cookie token exists:', !!token);
-    console.log('🔐 /auth/me - All cookies:', (req as any).cookies);
+    // Tentar ler do cookie primeiro (localhost)
+    let token = (req as any).cookies?.token as string | undefined;
+    
+    // Se não tiver cookie, ler do header Authorization (produção cross-domain)
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
+    console.log('🔐 /auth/me - Cookie token exists:', !!(req as any).cookies?.token);
+    console.log('🔐 /auth/me - Bearer token exists:', !!req.headers.authorization);
+    console.log('🔐 /auth/me - Token being used:', !!token);
     
     if (!token) {
       res.status(401);
