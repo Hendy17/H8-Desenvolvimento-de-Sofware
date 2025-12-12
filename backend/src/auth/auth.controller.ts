@@ -18,6 +18,7 @@ export class AuthController {
     if (token) {
       const maxAge = 1000 * 60 * 60; // 1 hour
       const isProduction = process.env.NODE_ENV === 'production';
+      console.log('🍪 Setting cookie - isProduction:', isProduction, 'sameSite:', isProduction ? 'none' : 'lax');
       res.cookie('token', token, { 
         httpOnly: true, 
         secure: isProduction, 
@@ -39,16 +40,24 @@ export class AuthController {
   @Header('Cache-Control', 'no-store, no-cache, must-revalidate, private')
   @Header('Pragma', 'no-cache')
   @Header('Expires', '0')
-  async me(@Req() req: Request) {
+  async me(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     // read token from cookie (requires cookie-parser)
     const token = (req as any).cookies?.token as string | undefined;
+    console.log('🔐 /auth/me - Cookie token exists:', !!token);
+    console.log('🔐 /auth/me - All cookies:', (req as any).cookies);
+    
     if (!token) {
-      return { message: 'Não autenticado' };
+      res.status(401);
+      return { message: 'Não autenticado', authenticated: false };
     }
     const payload = this.authService.verifyToken(token);
-    if (!payload) return { message: 'Não autenticado' };
+    if (!payload) {
+      res.status(401);
+      return { message: 'Token inválido', authenticated: false };
+    }
     const user = await this.authService.findUserById(payload.sub);
-    return { id: user.id, email: user.email, tenantDbName: user.tenantDbName };
+    console.log('✅ /auth/me - User found:', user?.email);
+    return { id: user.id, email: user.email, tenantDbName: user.tenantDbName, authenticated: true };
   }
 
   @Post('register')
