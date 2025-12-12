@@ -17,8 +17,13 @@ export class AuthController {
     const token = result?.access_token;
     if (token) {
       const maxAge = 1000 * 60 * 60; // 1 hour
-      const secure = process.env.NODE_ENV === 'production';
-      res.cookie('token', token, { httpOnly: true, secure, sameSite: 'lax', maxAge });
+      const isProduction = process.env.NODE_ENV === 'production';
+      res.cookie('token', token, { 
+        httpOnly: true, 
+        secure: isProduction, 
+        sameSite: isProduction ? 'none' : 'lax', 
+        maxAge 
+      });
     }
     return { message: 'Login bem-sucedido' };
   }
