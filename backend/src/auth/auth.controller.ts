@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, Res, Get, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, Res, Get, Req, Header } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 
@@ -31,6 +31,9 @@ export class AuthController {
   }
 
   @Get('me')
+  @Header('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async me(@Req() req: Request) {
     // read token from cookie (requires cookie-parser)
     const token = (req as any).cookies?.token as string | undefined;
