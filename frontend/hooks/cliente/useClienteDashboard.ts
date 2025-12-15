@@ -21,7 +21,9 @@ export function useClienteDashboard() {
       try {
         setLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await axios.get(`${apiUrl}/clients/${cnpj}/expenses/summary`, {
+        // Normalizar CNPJ: remover tudo que não é número
+        const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+        const response = await axios.get(`${apiUrl}/clients/${normalizedCnpj}/expenses/summary`, {
           withCredentials: true,
         });
         setData(response.data);
@@ -48,12 +50,14 @@ export function useClienteDashboard() {
     try {
       let totalProcessed = 0;
       let totalExpenses = 0;
+      // Normalizar CNPJ: remover tudo que não é número
+      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
       for (const f of fileList) {
         const form = new FormData();
         // @ts-ignore
         form.append('file', f.originFileObj);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await axios.post(`${apiUrl}/clients/attachments/${cnpj}`, form, {
+        const response = await axios.post(`${apiUrl}/clients/attachments/${normalizedCnpj}`, form, {
           headers: { 'Content-Type': 'multipart/form-data' },
           withCredentials: true
         });
