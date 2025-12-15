@@ -71,13 +71,22 @@ export function useClienteDashboard() {
       if (totalProcessed > 0) {
         notification.success({
           message: 'Planilhas processadas com sucesso!',
-          description: `${totalExpenses} despesa(s) adicionada(s). Recarregue a página para ver os dados atualizados.`,
+          description: `${totalExpenses} despesa(s) adicionada(s). Atualizando dados...`,
           duration: 6,
         });
-        // Recarregar dados após 1 segundo
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        // Aguardar 2 segundos e recarregar os dados sem recarregar a página
+        setTimeout(async () => {
+          try {
+            const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+            const response = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/clients/${normalizedCnpj}/expenses/summary`,
+              { withCredentials: true }
+            );
+            setData(response.data);
+          } catch (error) {
+            console.error('Erro ao recarregar dados:', error);
+          }
+        }, 2000);
       } else {
         notification.success({ message: 'Arquivos enviados com sucesso!' });
       }
