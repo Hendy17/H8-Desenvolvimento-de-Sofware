@@ -23,12 +23,14 @@ export function useClienteDashboard() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
         // Normalizar CNPJ: remover tudo que não é número
         const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+        console.log('🔍 CNPJ da URL:', cnpj);
+        console.log('🔍 CNPJ normalizado:', normalizedCnpj);
         const response = await axios.get(`${apiUrl}/clients/${normalizedCnpj}/expenses/summary`, {
           withCredentials: true,
         });
         setData(response.data);
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ Erro ao carregar dados:', error);
       } finally {
         setLoading(false);
       }
@@ -52,6 +54,8 @@ export function useClienteDashboard() {
       let totalExpenses = 0;
       // Normalizar CNPJ: remover tudo que não é número
       const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+      console.log('📤 Enviando para CNPJ normalizado:', normalizedCnpj);
+      console.log('📤 Comprimento do CNPJ:', normalizedCnpj.length);
       for (const f of fileList) {
         const form = new FormData();
         // @ts-ignore
