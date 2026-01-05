@@ -2,6 +2,8 @@ import { Layout, Card, Spin, Typography, Row, Col, Statistic, Button, Modal, For
 import { UploadOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useClienteDashboard } from '../../hooks/cliente/useClienteDashboard';
+import { PeriodFilter } from '../../components/period-filter/periodFilter';
+import { ExpensesTable } from '../../components/expenses-table/expensesTable';
 import styles from './styles.module.css';
 
 const { Content } = Layout;
@@ -21,6 +23,14 @@ export default function ClienteDashboard() {
     setFileList,
     uploading,
     handleUploadSubmit,
+    periodType,
+    selectedMonth,
+    selectedQuarter,
+    handlePeriodChange,
+    handleMonthChange,
+    handleQuarterChange,
+    allExpenses,
+    fetchAllExpenses,
   } = useClienteDashboard();
 
   if (loading) {
@@ -82,6 +92,16 @@ export default function ClienteDashboard() {
             </div>
           </div>
         </Card>
+
+        {/* Filtro de Período */}
+        <PeriodFilter 
+          periodType={periodType}
+          selectedMonth={selectedMonth}
+          selectedQuarter={selectedQuarter}
+          onPeriodChange={handlePeriodChange}
+          onMonthChange={handleMonthChange}
+          onQuarterChange={handleQuarterChange}
+        />
 
         <Row gutter={16} className={styles.statsRow}>
           <Col span={12}>
@@ -170,6 +190,14 @@ export default function ClienteDashboard() {
           ) : (
             <p>Nenhuma despesa registrada para este cliente.</p>
           )}
+        </Card>
+
+        {/* Tabela de Despesas Editável */}
+        <Card title="Todas as Despesas" className={styles.expensesCard}>
+          <ExpensesTable 
+            expenses={allExpenses}
+            onExpensesChange={fetchAllExpenses}
+          />
         </Card>
 
         {/* Modal de Upload */}

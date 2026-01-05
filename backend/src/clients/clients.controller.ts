@@ -1,4 +1,4 @@
-import { Controller, Get, Query, NotFoundException, Post, Body, BadRequestException, UseInterceptors, UploadedFile, Param, Res, Req } from '@nestjs/common';
+import { Controller, Get, Query, NotFoundException, Post, Body, BadRequestException, UseInterceptors, UploadedFile, Param, Res, Req, Put, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
@@ -10,6 +10,13 @@ class CreateClientDto {
   cnpj: string;
   name: string;
   address?: string;
+}
+
+class UpdateExpenseDto {
+  category?: string;
+  description?: string;
+  amount?: number;
+  date?: string;
 }
 
 @Controller('clients')
@@ -117,10 +124,51 @@ export class ClientsController {
   }
 
   @Get(':cnpj/expenses/summary')
-  async getExpensesSummary(@Param('cnpj') cnpj: string) {
+  async getExpensesSummary(
+    @Param('cnpj') cnpj: string,
+    @Query('period') period?: 'monthly' | 'quarterly',
+    @Query('month') month?: string,
+    @Query('quarter') quarter?: string,
+  ) {
     const client = await this.clientsService.findByCnpj(cnpj);
     if (!client) throw new NotFoundException('Cliente não encontrado');
-    const summary = await this.clientsService.getExpensesSummaryByCategory(client.id);
+    
+    const summary = await this.clientsService.getExpensesSummaryByCategory(
+      client.id,
+      period,
+      month,
+      quarter
+    );
+    
     return { client: { id: client.id, name: client.name, cnpj: client.cnpj }, expenses: summary };
   }
+
+  @Get(':cnpj/expenses')
+  async getExpenses(@Param('cnpj') cnpj: string) {
+    const client = await this.clientsService.findByCnpj(cnpj);
+    if (!client) throw new NotFoundException('Cliente não encontrado');
+    const expenses = await this.clientsService.getExpensesByClientId(client.id);
+    return { client: { id: client.id, name: client.name, cnpj: client.cnpj }, expenses };
+  }
+
+  @Put('expenses/:expenseId')
+  async updateExpense(@Param('expenseId') expenseId: string, @Body() dto: UpdateExpenseDto) {
+    if (!expenseId) throw new BadRequestException('expenseId is required');
+    
+    const updated = await this.clientsService.updateExpense(expenseId, dto);
+    if (!updated) throw new NotFoundException('Despesa não encontrada');
+    
+    return { message: 'Despesa atualizada com sucesso', expense: updated };
+  }
+
+  @Delete('expenses/:expenseId')
+  async deleteExpense(@Param('expenseId') expenseId: string) {
+    if (!expenseId) throw new BadRequestException('expenseId is required');
+    
+    const deleted = await this.clientsService.deleteExpense(expenseId);
+    if (!deleted) throw new NotFoundException('Despesa não encontrada');
+    
+    return { message: 'Despesa deletada com sucesso' };
+  }
 }
+

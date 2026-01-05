@@ -36,4 +36,18 @@
 
 .chartCard {
   text-align: center;
+  margin-bottom: 24px;
+}
+
+.expensesCard {
+  margin-bottom: 24px;
+}
+
+
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.chartCard {
+  text-align: center;
 }

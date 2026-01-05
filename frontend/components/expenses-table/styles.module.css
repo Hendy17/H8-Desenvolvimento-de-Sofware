@@ -1,0 +1,16 @@
+.expensesTable {
+  margin-top: 24px;
+}
+
+.expensesTable :global(.ant-table) {
+  background-color: #ffffff;
+}
+
+.expensesTable :global(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.expensesTable :global(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}

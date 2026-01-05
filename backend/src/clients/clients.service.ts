@@ -49,19 +49,46 @@ export class ClientsService {
     return this.attachmentRepo.findOne({ where: { id } });
   }
 
-  async getExpensesByClientId(clientId: string) {
-    return this.expenseRepo.find({ where: { client: { id: clientId } }, order: { date: 'DESC' } });
-  }
-
-  async getExpensesSummaryByCategory(clientId: string) {
-    const expenses = await this.expenseRepo
+  async getExpensesSummaryByCategory(
+    clientId: string,
+    period?: 'monthly' | 'quarterly',
+    month?: string,
+    quarter?: string,
+  ) {
+    let query = this.expenseRepo
       .createQueryBuilder('expense')
       .select('expense.category', 'category')
       .addSelect('SUM(expense.amount)', 'total')
-      .where('expense.clientId = :clientId', { clientId })
+      .where('expense.clientId = :clientId', { clientId });
+
+    // Aplicar filtros de período se fornecidos
+    if (period === 'monthly' && month) {
+      // month formato: YYYY-MM
+      const [year, monthNum] = month.split('-');
+      const startDate = new Date(`${year}-${monthNum}-01`);
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0, 23, 59, 59);
+      
+      query = query.andWhere('expense.date >= :startDate', { startDate })
+        .andWhere('expense.date <= :endDate', { endDate });
+    } else if (period === 'quarterly' && quarter) {
+      // quarter formato: YYYY-Q1, YYYY-Q2, etc
+      const [year, q] = quarter.split('-');
+      const quarterNum = parseInt(q.replace('Q', ''));
+      const startMonth = (quarterNum - 1) * 3 + 1;
+      const endMonth = quarterNum * 3;
+      
+      const startDate = new Date(`${year}-${String(startMonth).padStart(2, '0')}-01`);
+      const endDate = new Date(parseInt(year), endMonth, 0, 23, 59, 59);
+      
+      query = query.andWhere('expense.date >= :startDate', { startDate })
+        .andWhere('expense.date <= :endDate', { endDate });
+    }
+
+    const expenses = await query
       .groupBy('expense.category')
       .orderBy('total', 'DESC')
       .getRawMany();
+
     return expenses.map(e => ({ category: e.category, total: parseFloat(e.total) }));
   }
 
@@ -188,4 +215,32 @@ export class ClientsService {
       return { success: false, count: 0, errors: [err.message || 'Erro ao processar planilha'] };
     }
   }
+
+  async updateExpense(expenseId: string, updates: any) {
+    const expense = await this.expenseRepo.findOne({ where: { id: expenseId } });
+    if (!expense) return null;
+
+    if (updates.category) expense.category = updates.category;
+    if (updates.description) expense.description = updates.description;
+    if (updates.amount !== undefined) expense.amount = parseFloat(updates.amount);
+    if (updates.date) expense.date = new Date(updates.date);
+
+    return this.expenseRepo.save(expense);
+  }
+
+  async deleteExpense(expenseId: string) {
+    const expense = await this.expenseRepo.findOne({ where: { id: expenseId } });
+    if (!expense) return false;
+
+    await this.expenseRepo.remove(expense);
+    return true;
+  }
+
+  async getExpensesByClientId(clientId: string) {
+    return this.expenseRepo.find({
+      where: { client: { id: clientId } },
+      order: { date: 'DESC' },
+    });
+  }
 }
+

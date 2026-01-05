@@ -13,3 +13,5 @@ export interface DashboardData {
   client: ClientData;
   expenses: ExpenseSummary[];
 }
+
+export type PeriodType = 'all' | 'monthly' | 'quarterly';

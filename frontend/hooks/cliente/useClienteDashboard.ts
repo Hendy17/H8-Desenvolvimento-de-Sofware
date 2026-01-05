@@ -4,40 +4,89 @@ import axios from 'axios';
 import { notification } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { DashboardData } from '../../types/cliente/types';
+import { usePeriodFilter } from '../../components/period-filter/usePeriodFilter';
+
+export interface ExpenseRecord {
+  id: string;
+  category: string;
+  description: string;
+  amount: number;
+  date: string;
+}
 
 export function useClienteDashboard() {
   const router = useRouter();
   const { cnpj } = router.query;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [allExpenses, setAllExpenses] = useState<ExpenseRecord[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  const {
+    periodType,
+    selectedMonth,
+    selectedQuarter,
+    handlePeriodChange,
+    handleMonthChange,
+    handleQuarterChange,
+  } = usePeriodFilter();
+
+  const fetchExpensesData = async (period = periodType, month = selectedMonth, quarter = selectedQuarter) => {
+    if (!cnpj) return;
+
+    try {
+      setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+      
+      let url = `${apiUrl}/clients/${normalizedCnpj}/expenses/summary`;
+      
+      // Adicionar parâmetros de filtro se necessário
+      if (period === 'monthly' && month) {
+        url += `?period=monthly&month=${month}`;
+      } else if (period === 'quarterly' && quarter) {
+        url += `?period=quarterly&quarter=${quarter}`;
+      }
+      
+      console.log('🔍 Buscando dados de:', url);
+      const response = await axios.get(url, {
+        withCredentials: true,
+      });
+      setData(response.data);
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados:', error);
+      notification.error({ message: 'Erro ao carregar dados de despesas' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAllExpenses = async () => {
+    if (!cnpj) return;
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+      
+      const response = await axios.get(
+        `${apiUrl}/clients/${normalizedCnpj}/expenses`,
+        { withCredentials: true }
+      );
+      setAllExpenses(response.data.expenses || []);
+    } catch (error) {
+      console.error('❌ Erro ao carregar despesas:', error);
+    }
+  };
+
   useEffect(() => {
     if (!cnpj) return;
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        // Normalizar CNPJ: remover tudo que não é número
-        const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
-        console.log('🔍 CNPJ da URL:', cnpj);
-        console.log('🔍 CNPJ normalizado:', normalizedCnpj);
-        const response = await axios.get(`${apiUrl}/clients/${normalizedCnpj}/expenses/summary`, {
-          withCredentials: true,
-        });
-        setData(response.data);
-      } catch (error) {
-        console.error('❌ Erro ao carregar dados:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchExpensesData(periodType, selectedMonth, selectedQuarter);
+    fetchAllExpenses();
 
-    fetchData();
-  }, [cnpj]);
+  }, [cnpj, periodType, selectedMonth, selectedQuarter]);
 
   const handleVoltar = () => {
     router.push('/');
@@ -107,6 +156,7 @@ export function useClienteDashboard() {
   return {
     loading,
     data,
+    allExpenses,
     cnpj,
     handleVoltar,
     uploadOpen,
@@ -115,5 +165,12 @@ export function useClienteDashboard() {
     setFileList,
     uploading,
     handleUploadSubmit,
+    periodType,
+    selectedMonth,
+    selectedQuarter,
+    handlePeriodChange,
+    handleMonthChange,
+    handleQuarterChange,
+    fetchAllExpenses,
   };
 }

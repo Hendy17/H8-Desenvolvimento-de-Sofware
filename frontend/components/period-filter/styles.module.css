@@ -1,0 +1,17 @@
+.filterCard {
+  margin-bottom: 24px;
+  background-color: #fafafa;
+  border: 1px solid #e8e8e8;
+}
+
+.filterTitle {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.selectContainer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
