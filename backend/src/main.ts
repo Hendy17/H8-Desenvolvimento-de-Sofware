@@ -10,31 +10,9 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const port = process.env.PORT || process.env.PORT_BACKEND || 3001;
-  const front = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
-  
-  // Configure CORS for development and production
-  const allowedOrigins = [
-    front,
-    'https://h8-desenvolvimento-de-software-18zcufkh5.vercel.app',
-    'https://h8-desenvolvimento-de-sofware-4el0qglbi.vercel.app'
-  ];
-  
-  // In production, also allow Vercel domain if provided
-  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_URL) {
-    allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
-  }
   
   app.enableCors({ 
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true,
     credentials: true 
   });
   
