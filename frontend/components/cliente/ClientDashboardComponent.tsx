@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import dynamic from 'next/dynamic';
 import { PeriodFilter } from '../../components/period-filter/periodFilter';
 import styles from '../../pages/cliente/styles.module.css';
-import { ClienteDashboardProps } from '../../pages/cliente/types';
+import { ClienteDashboardProps } from '../../types/cliente/clienteDashboard';
 
 const ExpensesTable = dynamic(
   () => import('../../components/expenses-table').then(mod => ({ default: mod.ExpensesTable })),

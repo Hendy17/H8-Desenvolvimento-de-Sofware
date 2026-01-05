@@ -1,5 +1,5 @@
 import { ClientDashboardComponent } from '../../components/cliente/ClientDashboardComponent';
-import { useClientePage } from './useClientePage';
+import { useClientePage } from '../../hooks/cliente/useClientePage';
 
 export default function ClienteDashboard() {
   const {
