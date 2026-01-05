@@ -3,7 +3,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useClienteDashboard } from '../../hooks/cliente/useClienteDashboard';
 import { PeriodFilter } from '../../components/period-filter/periodFilter';
-import { ExpensesTable } from '../../components/expenses-table/expensesTable';
+import { ExpensesTable } from '../../components/expenses-table';
 import styles from './styles.module.css';
 
 const { Content } = Layout;
