@@ -13,7 +13,11 @@ async function bootstrap() {
   const front = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
   
   // Configure CORS for development and production
-  const allowedOrigins = [front];
+  const allowedOrigins = [
+    front,
+    'https://h8-desenvolvimento-de-software-18zcufkh5.vercel.app',
+    'https://h8-desenvolvimento-de-sofware-4el0qglbi.vercel.app'
+  ];
   
   // In production, also allow Vercel domain if provided
   if (process.env.NODE_ENV === 'production' && process.env.VERCEL_URL) {
