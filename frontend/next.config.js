@@ -6,6 +6,10 @@ const path = require('path');
  * mapping to `rc-util/lib` fixes `ERR_MODULE_NOT_FOUND` in many cases.
  */
 module.exports = {
+  onDemandEntries: {
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
@@ -17,3 +21,4 @@ module.exports = {
     return config;
   },
 };
+
