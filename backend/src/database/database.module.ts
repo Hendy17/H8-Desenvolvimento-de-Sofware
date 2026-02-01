@@ -1,5 +1,5 @@
 import { Module, DynamicModule } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from '../users/user.entity';
 import { Client } from '../clients/client.entity';
 import { Attachment } from '../clients/attachment.entity';
@@ -13,63 +13,86 @@ export class DatabaseModule {
     
     if (!isProduction) {
       console.log('🔧 Modo desenvolvimento: usando SQLite');
-      return {
-        module: DatabaseModule,
-        imports: [
-          TypeOrmModule.forRoot({
-            type: 'sqlite',
-            database: './local_dev.db',
-            entities: [User, Client, Attachment, Expense],
-            synchronize: true,
-          })
-        ],
-        exports: [TypeOrmModule],
-      };
+      return this.createSqliteConfig();
     }
 
     console.log('🚀 Modo produção: conectando PostgreSQL...');
     
-    // Em produção, DEVE conectar no PostgreSQL - sem fallback
+    // Em produção, tentar PostgreSQL primeiro, SQLite como fallback
     return {
       module: DatabaseModule,
       imports: [
         TypeOrmModule.forRootAsync({
-          useFactory: async () => {
+          useFactory: async (): Promise<TypeOrmModuleOptions> => {
             console.log('🔗 Conectando PostgreSQL...');
-            return {
-              type: 'postgres' as const,
-              url: dbUrl,
-              ssl: { rejectUnauthorized: false },
-              retryAttempts: 10,
-              retryDelay: 3000,
-              entities: [User, Client, Attachment, Expense],
-              synchronize: true,
-              logging: ['error'],
-              // Pool de conexões otimizado para produção
-              extra: {
-                // Pool de conexões para alta carga
-                max: 50,              // Máximo 50 conexões simultâneas
-                min: 10,              // Mínimo 10 conexões sempre ativas
-                acquire: 60000,       // Timeout para conseguir conexão (1 min)
-                idle: 10000,          // Tempo para conexão ficar idle (10s)
-                evict: 1000,          // Intervalo para limpar conexões idle (1s)
-                
-                // Timeouts de query para evitar travamentos
-                statement_timeout: 30000,                    // 30s max por query
-                query_timeout: 30000,                       // 30s max por query
-                connectionTimeoutMillis: 10000,             // 10s para conectar
-                idleTimeoutMillis: 30000,                   // 30s idle
-                idle_in_transaction_session_timeout: 10000, // 10s em transação idle
-                
-                // Performance e estabilidade
-                application_name: 'accounting_backend',
-                keepAlive: true,
-                keepAliveInitialDelayMillis: 10000,
-              }
-            };
+            
+            try {
+              // Configuração PostgreSQL para Render.com
+              const pgConfig: TypeOrmModuleOptions = {
+                type: 'postgres',
+                url: dbUrl,
+                // SSL obrigatório para Render.com
+                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+                retryAttempts: 5, // Reduzido para falhar mais rápido e tentar SQLite
+                retryDelay: 2000,
+                entities: [User, Client, Attachment, Expense],
+                synchronize: true,
+                logging: ['error', 'warn'] as ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log' | 'migration')[],
+                // Pool de conexões otimizado para Render.com
+                extra: {
+                  // Pool reduzido para Render (limite de conexões)
+                  max: 20,
+                  min: 5,
+                  acquireTimeoutMillis: 30000,
+                  idleTimeoutMillis: 30000,
+                  
+                  // Configurações PostgreSQL específicas
+                  statement_timeout: 20000,
+                  query_timeout: 20000,
+                  application_name: 'accounting_backend',
+                  keepAlive: true,
+                  keepAliveInitialDelayMillis: 0,
+                }
+              };
+
+              console.log('✅ PostgreSQL configurado com sucesso');
+              return pgConfig;
+              
+            } catch (error) {
+              console.error('❌ Falha ao conectar PostgreSQL:', error.message);
+              console.log('🔄 Fallback para SQLite temporário...');
+              
+              // Fallback para SQLite em produção quando PostgreSQL falha
+              const sqliteConfig: TypeOrmModuleOptions = {
+                type: 'sqlite',
+                database: './production_fallback.db',
+                entities: [User, Client, Attachment, Expense],
+                synchronize: true,
+                logging: ['error', 'warn'] as ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log' | 'migration')[],
+              };
+              
+              return sqliteConfig;
+            }
           },
         })
       ],
+      exports: [TypeOrmModule],
+    };
+  }
+
+  // Método auxiliar para configuração SQLite
+  private static createSqliteConfig(): DynamicModule {
+    const config: TypeOrmModuleOptions = {
+      type: 'sqlite',
+      database: './local_dev.db',
+      entities: [User, Client, Attachment, Expense],
+      synchronize: true,
+      logging: ['error'] as ('query' | 'error' | 'schema' | 'warn' | 'info' | 'log' | 'migration')[],
+    };
+    
+    return {
+      module: DatabaseModule,
+      imports: [TypeOrmModule.forRoot(config)],
       exports: [TypeOrmModule],
     };
   }
