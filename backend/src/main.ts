@@ -17,7 +17,13 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log'],
     });
     
-    app.enableCors();
+    // Configurar CORS corretamente para funcionar com credentials
+    app.enableCors({
+      origin: ['http://localhost:3000', 'http://localhost:3001'],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    });
     
     // Health check endpoint completo
     const server = app.getHttpAdapter();

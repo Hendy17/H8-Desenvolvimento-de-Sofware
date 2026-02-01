@@ -17,6 +17,7 @@ export interface ExpenseRecord {
   category: string;
   description: string;
   amount: number;
+  type: 'ENTRADA' | 'SAIDA'; // Novo campo
   date: string;
 }
 

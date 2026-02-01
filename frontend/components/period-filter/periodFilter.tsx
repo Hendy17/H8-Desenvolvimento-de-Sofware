@@ -1,9 +1,7 @@
 import React from 'react';
-import { Card, Button, Space, Select } from 'antd';
+import { Card, Button, Stack, Group, Select } from '@mantine/core';
 import { PeriodFilterProps, MONTH_OPTIONS, QUARTER_OPTIONS } from './types';
 import styles from './styles.module.css';
-
-const { Option } = Select;
 
 export function PeriodFilter({
   periodType,
@@ -14,47 +12,42 @@ export function PeriodFilter({
   onQuarterChange,
 }: PeriodFilterProps) {
   return (
-    <Card className={styles.filterCard}>
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+    <Card shadow="xs" padding="md" className={styles.filterCard}>
+      <Stack gap="md">
         <div className={styles.filterTitle}>
           Filtrar por Período
         </div>
         
-        <Space wrap>
+        <Group wrap="wrap">
           <Button 
-            type={periodType === 'all' ? 'primary' : 'default'}
+            variant={periodType === 'all' ? 'filled' : 'outline'}
             onClick={() => onPeriodChange('all')}
           >
             Todos os Períodos
           </Button>
           <Button 
-            type={periodType === 'monthly' ? 'primary' : 'default'}
+            variant={periodType === 'monthly' ? 'filled' : 'outline'}
             onClick={() => onPeriodChange('monthly')}
           >
             Relatório Mensal
           </Button>
           <Button 
-            type={periodType === 'quarterly' ? 'primary' : 'default'}
+            variant={periodType === 'quarterly' ? 'filled' : 'outline'}
             onClick={() => onPeriodChange('quarterly')}
           >
             Relatório Trimestral
           </Button>
-        </Space>
+        </Group>
 
         {periodType === 'monthly' && (
           <div className={styles.selectContainer}>
             <Select
               placeholder="Selecione o mês"
-              style={{ width: '200px' }}
-              value={selectedMonth || undefined}
+              w={200}
+              value={selectedMonth || null}
               onChange={onMonthChange}
-            >
-              {MONTH_OPTIONS.map(opt => (
-                <Option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </Option>
-              ))}
-            </Select>
+              data={MONTH_OPTIONS}
+            />
           </div>
         )}
 
@@ -62,19 +55,14 @@ export function PeriodFilter({
           <div className={styles.selectContainer}>
             <Select
               placeholder="Selecione o trimestre"
-              style={{ width: '200px' }}
-              value={selectedQuarter || undefined}
+              w={200}
+              value={selectedQuarter || null}
               onChange={onQuarterChange}
-            >
-              {QUARTER_OPTIONS.map(opt => (
-                <Option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </Option>
-              ))}
-            </Select>
+              data={QUARTER_OPTIONS}
+            />
           </div>
         )}
-      </Space>
+      </Stack>
     </Card>
   );
 }

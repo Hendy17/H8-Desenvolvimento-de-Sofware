@@ -1,5 +1,6 @@
-import { Table, Button, Input, DatePicker, InputNumber, Space, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { Table, Button, TextInput, NumberInput, Group, ActionIcon, Modal, Stack, Paper, Text } from '@mantine/core';
+import { IconEdit, IconTrash, IconCheck, IconX, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
+import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import styles from './styles.module.css';
 import { useExpensesTable } from './useExpensesTable';
@@ -16,153 +17,170 @@ export function ExpensesTable({ expenses, onExpensesChange }: ExpensesTableProps
     save,
     handleDelete,
     setEditingData,
+    toggleType,
   } = useExpensesTable(onExpensesChange);
 
-  const columns = [
-    {
-      title: 'Categoria',
-      dataIndex: 'category',
-      key: 'category',
-      width: '15%',
-      render: (_: string, record: ExpenseRecord) => {
-        if (isEditing(record)) {
-          return (
-            <Input
-              value={editingData.category}
-              onChange={(e) => setEditingData({ ...editingData, category: e.target.value })}
-              placeholder="Categoria"
-            />
-          );
-        }
-        return record.category;
-      },
-    },
-    {
-      title: 'Descrição',
-      dataIndex: 'description',
-      key: 'description',
-      width: '30%',
-      render: (_: string, record: ExpenseRecord) => {
-        if (isEditing(record)) {
-          return (
-            <Input
-              value={editingData.description}
-              onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
-              placeholder="Descrição"
-            />
-          );
-        }
-        return record.description;
-      },
-    },
-    {
-      title: 'Valor (R$)',
-      dataIndex: 'amount',
-      key: 'amount',
-      width: '15%',
-      align: 'right' as const,
-      render: (_: number, record: ExpenseRecord) => {
-        if (isEditing(record)) {
-          return (
-            <InputNumber
-              value={editingData.amount}
-              onChange={(value) => setEditingData({ ...editingData, amount: value || 0 })}
-              precision={2}
-              placeholder="0.00"
-              style={{ width: '100%' }}
-            />
-          );
-        }
-        return `R$ ${parseFloat(String(record.amount)).toFixed(2)}`;
-      },
-    },
-    {
-      title: 'Data',
-      dataIndex: 'date',
-      key: 'date',
-      width: '15%',
-      render: (_: string, record: ExpenseRecord) => {
-        if (isEditing(record)) {
-          return (
-            <DatePicker
-              value={editingData.date ? dayjs(editingData.date) : null}
-              onChange={(date) => setEditingData({ ...editingData, date: date ? date.format('YYYY-MM-DD') : '' })}
-              format="DD/MM/YYYY"
-            />
-          );
-        }
-        return new Date(record.date).toLocaleDateString('pt-BR');
-      },
-    },
-    {
-      title: 'Ações',
-      key: 'action',
-      width: '15%',
-      render: (_: string, record: ExpenseRecord) => {
-        if (isEditing(record)) {
-          return (
-            <Space size="small">
-              <Button
-                type="primary"
-                size="small"
-                loading={loading}
-                onClick={() => save(record.id)}
-                icon={<SaveOutlined />}
-              >
-                Salvar
-              </Button>
-              <Button size="small" onClick={cancel} icon={<CloseOutlined />}>
-                Cancelar
-              </Button>
-            </Space>
-          );
-        }
-        return (
-          <Space size="small">
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              onClick={() => edit(record)}
-              icon={<EditOutlined />}
-            >
-              Editar
-            </Button>
-            <Popconfirm
-              title="Deletar despesa"
-              description="Tem certeza que deseja deletar esta despesa?"
-              onConfirm={() => handleDelete(record.id)}
-              okText="Sim"
-              cancelText="Não"
-            >
-              <Button
-                type="primary"
-                danger
-                ghost
-                size="small"
-                loading={loading}
-                icon={<DeleteOutlined />}
-              >
-                Deletar
-              </Button>
-            </Popconfirm>
-          </Space>
-        );
-      },
-    },
-  ];
+  const handleCategoryChange = (value: string) => {
+    setEditingData({ ...editingData, category: value });
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    setEditingData({ ...editingData, description: value });
+  };
+
+  const handleAmountChange = (value: string | number) => {
+    setEditingData({ ...editingData, amount: Number(value) || 0 });
+  };
+
+  const handleDateChange = (value: Date | null) => {
+    setEditingData({ ...editingData, date: value ? value.toISOString().split('T')[0] : '' });
+  };
+
+  const handleDateInputChange = (value: string) => {
+    setEditingData({ ...editingData, date: value });
+  };
 
   return (
-    <Table
-      columns={columns}
-      dataSource={expenses}
-      rowKey="id"
-      pagination={{ pageSize: 10, showSizeChanger: true }}
-      loading={loading}
-      locale={{
-        emptyText: 'Nenhuma despesa registrada',
-      }}
-      className={styles.expensesTable}
-    />
+    <Paper shadow="xs" p="md">
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th style={{ width: '18%' }}>Categoria</Table.Th>
+            <Table.Th style={{ width: '30%' }}>Descrição</Table.Th>
+            <Table.Th style={{ width: '13%' }}>Valor (R$)</Table.Th>
+            <Table.Th style={{ width: '12%' }}>Tipo</Table.Th>
+            <Table.Th style={{ width: '12%' }}>Data</Table.Th>
+            <Table.Th style={{ width: '15%' }}>Ações</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {expenses.map((record) => (
+            <Table.Tr key={record.id}>
+              <Table.Td>
+                {isEditing(record) ? (
+                  <TextInput
+                    value={editingData.category || ''}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    placeholder="Categoria"
+                    size="sm"
+                  />
+                ) : (
+                  record.category
+                )}
+              </Table.Td>
+              <Table.Td>
+                {isEditing(record) ? (
+                  <TextInput
+                    value={editingData.description || ''}
+                    onChange={(e) => handleDescriptionChange(e.target.value)}
+                    placeholder="Descrição"
+                    size="sm"
+                  />
+                ) : (
+                  record.description
+                )}
+              </Table.Td>
+              <Table.Td>
+                {isEditing(record) ? (
+                  <NumberInput
+                    value={editingData.amount || 0}
+                    onChange={handleAmountChange}
+                    decimalScale={2}
+                    placeholder="0.00"
+                    size="sm"
+                    min={0}
+                  />
+                ) : (
+                  <Text fw={500}>
+                    R$ {parseFloat(String(record.amount)).toFixed(2)}
+                  </Text>
+                )}
+              </Table.Td>
+              <Table.Td>
+                {isEditing(record) ? (
+                  <ActionIcon
+                    variant="light"
+                    color={editingData.type === 'ENTRADA' ? 'green' : 'red'}
+                    onClick={toggleType}
+                    size="lg"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {editingData.type === 'ENTRADA' ? (
+                      <IconTrendingUp size={18} />
+                    ) : (
+                      <IconTrendingDown size={18} />
+                    )}
+                  </ActionIcon>
+                ) : (
+                  <Text
+                    size="sm"
+                    fw={500}
+                    c={record.type === 'ENTRADA' ? 'green' : 'red'}
+                  >
+                    {record.type === 'ENTRADA' ? '📈 Entrada' : '📉 Saída'}
+                  </Text>
+                )}
+              </Table.Td>
+              <Table.Td>
+                {isEditing(record) ? (
+                  <TextInput
+                    type="date"
+                    value={editingData.date || ''}
+                    onChange={(e) => handleDateInputChange(e.target.value)}
+                    size="sm"
+                  />
+                ) : (
+                  dayjs(record.date).format('DD/MM/YYYY')
+                )}
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xs">
+                  {isEditing(record) ? (
+                    <>
+                      <ActionIcon
+                        variant="filled"
+                        color="green"
+                        onClick={() => save(record.id)}
+                        loading={loading}
+                        size="sm"
+                      >
+                        <IconCheck size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        onClick={cancel}
+                        size="sm"
+                      >
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </>
+                  ) : (
+                    <>
+                      <ActionIcon
+                        variant="light"
+                        color="blue"
+                        onClick={() => edit(record)}
+                        size="sm"
+                      >
+                        <IconEdit size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        onClick={() => handleDelete(record.id)}
+                        size="sm"
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </>
+                  )}
+                </Group>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Paper>
   );
 }

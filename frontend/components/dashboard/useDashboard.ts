@@ -23,11 +23,11 @@ export default function useDashboard() {
           setUser(res.data);
         } else {
           localStorage.removeItem('token');
-          router.replace('/login');
+          router.replace('/');
         }
       } catch (err) {
         localStorage.removeItem('token');
-        router.replace('/login');
+        router.replace('/');
       }
     };
     fetchMe();
@@ -47,7 +47,7 @@ export default function useDashboard() {
       // ignore
     }
     localStorage.removeItem('token');
-    router.replace('/login');
+    router.replace('/');
   };
 
   return { user, logout } as const;

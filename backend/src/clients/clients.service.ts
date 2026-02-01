@@ -129,6 +129,10 @@ export class ClientsService {
                        row['Valor'] || row['valor'];
           
           const data_str = row.data || row.Data || row.DATA || row.date || row.Date;
+          
+          const tipo = row.tipo || row.Tipo || row.TIPO || row.type || row.Type || 
+                      row.natureza || row.Natureza || row.NATUREZA || row['Tipo de Movimentação'] || 
+                      row['tipo de movimentação'] || row['TIPO DE MOVIMENTAÇÃO'] || 'SAIDA'; // Default
 
           if (!categoria || valor === undefined || valor === null) {
             errors.push(`Linha ${i + 2}: categoria e valor são obrigatórios`);
@@ -195,11 +199,27 @@ export class ClientsService {
             }
           }
 
+          // Normalizar tipo
+          let expenseType = 'SAIDA'; // Default
+          if (tipo) {
+            const tipoNormalized = String(tipo).toUpperCase().trim();
+            if (tipoNormalized.includes('ENTRADA') || tipoNormalized.includes('RECEITA') || 
+                tipoNormalized.includes('CREDITO') || tipoNormalized.includes('ENTRADA') ||
+                tipoNormalized === 'E' || tipoNormalized === 'ENTRADA' || tipoNormalized === 'IN') {
+              expenseType = 'ENTRADA';
+            } else if (tipoNormalized.includes('SAIDA') || tipoNormalized.includes('DESPESA') || 
+                      tipoNormalized.includes('DEBITO') || tipoNormalized.includes('GASTO') ||
+                      tipoNormalized === 'S' || tipoNormalized === 'SAIDA' || tipoNormalized === 'OUT') {
+              expenseType = 'SAIDA';
+            }
+          }
+
           // Criar a despesa
           const expense = this.expenseRepo.create({
             category: String(categoria).trim(),
             description: descricao ? String(descricao).trim() : '',
             amount: amount,
+            type: expenseType,
             date: expenseDate,
           });
           expense.client = client;
@@ -223,6 +243,7 @@ export class ClientsService {
     if (updates.category) expense.category = updates.category;
     if (updates.description) expense.description = updates.description;
     if (updates.amount !== undefined) expense.amount = parseFloat(updates.amount);
+    if (updates.type) expense.type = updates.type;
     if (updates.date) expense.date = new Date(updates.date);
 
     return this.expenseRepo.save(expense);

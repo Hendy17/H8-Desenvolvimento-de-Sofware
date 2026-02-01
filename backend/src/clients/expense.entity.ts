@@ -18,6 +18,9 @@ export class Expense {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
+  @Column({ type: 'varchar', default: 'SAIDA' }) // 'ENTRADA' ou 'SAIDA'
+  type: string;
+
   @Column({ type: 'date' })
   date: Date;
 

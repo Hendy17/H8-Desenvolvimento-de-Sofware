@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
-import { notification } from 'antd';
-import type { UploadFile } from 'antd/es/upload/interface';
+import { notifications } from '@mantine/notifications';
 import { usePeriodFilter } from '../../components/period-filter/usePeriodFilter';
 import { ExpenseRecord, UploadResponse, DashboardData } from '@shared/types';
 
 export function useClienteDashboard() {
   const router = useRouter();
-  const params = useParams();
-  const cnpj = params?.cnpj as string;
+  const searchParams = useSearchParams();
+  const cnpj = searchParams.get('cnpj') || '';
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [allExpenses, setAllExpenses] = useState<ExpenseRecord[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [fileList, setFileList] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const {
@@ -31,6 +30,17 @@ export function useClienteDashboard() {
     name: exp.category,
     value: parseFloat(exp.total),
   })) || [];
+
+  // Calcular totais por tipo
+  const totalEntradas = allExpenses
+    .filter(expense => expense.type === 'ENTRADA')
+    .reduce((sum, expense) => sum + Number(expense.amount), 0);
+    
+  const totalSaidas = allExpenses
+    .filter(expense => expense.type === 'SAIDA')
+    .reduce((sum, expense) => sum + Number(expense.amount), 0);
+    
+  const saldoLiquido = totalEntradas - totalSaidas;
 
   const totalExpenses = chartData.reduce((sum: number, item: any) => sum + item.value, 0);
   const biggestCategory = chartData.length > 0 ? chartData[0] : null;
@@ -58,7 +68,11 @@ export function useClienteDashboard() {
       setData(response.data);
     } catch (error) {
       console.error('❌ Erro ao carregar dados:', error);
-      notification.error({ message: 'Erro ao carregar dados de despesas' });
+      notifications.show({ 
+        title: 'Erro', 
+        message: 'Erro ao carregar dados de despesas', 
+        color: 'red' 
+      });
     } finally {
       setLoading(false);
     }
@@ -75,7 +89,10 @@ export function useClienteDashboard() {
         `${apiUrl}/clients/${normalizedCnpj}/expenses`,
         { withCredentials: true }
       );
-      setAllExpenses(response.data.expenses || []);
+      const expenses = response.data.expenses || [];
+      // Ordenar por data mais recente primeiro
+      const sortedExpenses = expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setAllExpenses(sortedExpenses);
     } catch (error) {
       console.error('❌ Erro ao carregar despesas:', error);
     }
@@ -88,12 +105,16 @@ export function useClienteDashboard() {
   }, [cnpj, periodType, selectedMonth, selectedQuarter]);
 
   const handleVoltar = () => {
-    router.push('/');
+    router.push('/dashboard');
   };
 
   const handleUploadSubmit = async () => {
     if (!fileList || fileList.length === 0) {
-      notification.warning({ message: 'Selecione ao menos um arquivo' });
+      notifications.show({ 
+        title: 'Aviso', 
+        message: 'Selecione ao menos um arquivo', 
+        color: 'yellow' 
+      });
       return;
     }
     setUploading(true);
@@ -104,7 +125,7 @@ export function useClienteDashboard() {
       
       for (const f of fileList) {
         const form = new FormData();
-        form.append('file', f.originFileObj as File);
+        form.append('file', f);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
         const response = await axios.post<UploadResponse>(`${apiUrl}/clients/attachments/${normalizedCnpj}`, form, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -118,10 +139,10 @@ export function useClienteDashboard() {
       }
 
       if (totalProcessed > 0) {
-        notification.success({
-          message: 'Planilhas processadas com sucesso!',
-          description: `${totalExpenses} despesa(s) adicionada(s). Atualizando dados...`,
-          duration: 6,
+        notifications.show({
+          title: 'Planilhas processadas com sucesso!',
+          message: `${totalExpenses} despesa(s) adicionada(s). Atualizando dados...`,
+          color: 'green'
         });
         
         setTimeout(async () => {
@@ -137,13 +158,21 @@ export function useClienteDashboard() {
           }
         }, 2000);
       } else {
-        notification.success({ message: 'Arquivos enviados com sucesso!' });
+        notifications.show({ 
+          title: 'Sucesso', 
+          message: 'Arquivos enviados com sucesso!', 
+          color: 'green' 
+        });
       }
 
       setUploadOpen(false);
       setFileList([]);
     } catch (err: any) {
-      notification.error({ message: err?.response?.data?.message || 'Erro ao enviar arquivos' });
+      notifications.show({ 
+        title: 'Erro', 
+        message: err?.response?.data?.message || 'Erro ao enviar arquivos', 
+        color: 'red' 
+      });
     } finally {
       setUploading(false);
     }
@@ -170,6 +199,9 @@ export function useClienteDashboard() {
     fetchAllExpenses,
     chartData,
     totalExpenses,
+    totalEntradas,
+    totalSaidas,
+    saldoLiquido,
     biggestCategory,
   };
 }

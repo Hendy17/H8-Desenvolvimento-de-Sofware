@@ -21,6 +21,9 @@ export interface ClienteDashboardProps {
   fetchAllExpenses: () => void;
   chartData: ChartDataItem[];
   totalExpenses: number;
+  totalEntradas: number;
+  totalSaidas: number;
+  saldoLiquido: number;
   biggestCategory: ChartDataItem | null;
 }
 

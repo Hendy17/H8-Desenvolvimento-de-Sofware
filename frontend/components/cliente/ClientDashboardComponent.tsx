@@ -1,18 +1,15 @@
-import { Layout, Card, Spin, Typography, Row, Col, Statistic, Button, Modal, Form, Upload } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Container, Card, Loader, Title, Grid, Text, Button, Modal, Stack, Group, FileInput, Center, Box } from '@mantine/core';
+import { IconUpload, IconArrowLeft } from '@tabler/icons-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import dynamic from 'next/dynamic';
 import { PeriodFilter } from '../../components/period-filter/periodFilter';
-import styles from '../../pages/cliente/styles.module.css';
+import styles from '../../app/cliente/styles/cliente.module.css';
 import { ClienteDashboardProps } from '../../types/cliente/clienteDashboard';
 
 const ExpensesTable = dynamic(
-  () => import('../../components/expenses-table').then(mod => ({ default: mod.ExpensesTable })),
-  { ssr: false, loading: () => <Spin /> }
+  () => import('../../components/expenses-table').then(mod => mod.ExpensesTable),
+  { ssr: false, loading: () => <Loader /> }
 );
-
-const { Content } = Layout;
-const { Title } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c'];
 
@@ -37,58 +34,62 @@ export function ClientDashboardComponent({
   fetchAllExpenses,
   chartData,
   totalExpenses,
+  totalEntradas,
+  totalSaidas,
+  saldoLiquido,
   biggestCategory,
 }: ClienteDashboardProps) {
   if (loading) {
     return (
-      <Layout className={styles.layout}>
-        <Content className={styles.content}>
-          <div className={styles.spinContainer}>
-            <Spin size="large" />
-          </div>
-        </Content>
-      </Layout>
+      <Container className={styles.layout}>
+        <Box className={styles.content}>
+          <Center className={styles.spinContainer}>
+            <Loader size="lg" />
+          </Center>
+        </Box>
+      </Container>
     );
   }
 
   if (!data) {
     return (
-      <Layout className={styles.layout}>
-        <Content className={styles.content}>
+      <Container className={styles.layout}>
+        <Box className={styles.content}>
           <Card>
-            <Title level={3}>Cliente não encontrado</Title>
+            <Title order={3}>Cliente não encontrado</Title>
           </Card>
-        </Content>
-      </Layout>
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <Layout className={styles.layout}>
-      <Content className={styles.content}>
+    <Container className={styles.layout}>
+      <Box className={styles.content}>
         <Card className={styles.headerCard}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <Title level={2}>{data.client.name}</Title>
-              <p>CNPJ: {cnpj}</p>
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
+          <Group justify="space-between" align="center">
+            <Box>
+              <Title order={2}>{data.client.name}</Title>
+              <Text>CNPJ: {cnpj}</Text>
+            </Box>
+            <Group gap={12}>
               <Button 
-                icon={<UploadOutlined />}
-                size="large"
+                leftSection={<IconUpload size={16} />}
+                size="md"
                 onClick={() => setUploadOpen(true)}
               >
                 Anexar Planilhas
               </Button>
               <Button 
-                type="primary" 
-                size="large"
+                variant="filled"
+                size="md"
                 onClick={handleVoltar}
+                leftSection={<IconArrowLeft size={16} />}
               >
                 Voltar
               </Button>
-            </div>
-          </div>
+            </Group>
+          </Group>
         </Card>
 
         {/* Filtro de Período */}
@@ -101,37 +102,46 @@ export function ClientDashboardComponent({
           onQuarterChange={handleQuarterChange}
         />
 
-        <Row gutter={16} className={styles.statsRow}>
-          <Col span={12}>
+        <Grid gutter={16} className={styles.statsRow}>
+          <Grid.Col span={4}>
             <Card>
-              <Statistic
-                title="Total de Despesas"
-                value={totalExpenses}
-                precision={2}
-                prefix="R$"
-              />
+              <Stack gap={8}>
+                <Text size="sm" c="dimmed">💰 Total de Entradas</Text>
+                <Text size="xl" fw={700} c="green">R$ {totalEntradas.toFixed(2)}</Text>
+              </Stack>
             </Card>
-          </Col>
-          <Col span={12}>
+          </Grid.Col>
+          <Grid.Col span={4}>
             <Card>
-              <Statistic
-                title="Maior Categoria"
-                value={biggestCategory ? biggestCategory.name : 'N/A'}
-                valueStyle={{ fontSize: '20px' }}
-              />
-              {biggestCategory && (
-                <p style={{ marginTop: '8px', fontSize: '14px', color: '#888' }}>
-                  R$ {biggestCategory.value.toFixed(2)}
-                </p>
-              )}
+              <Stack gap={8}>
+                <Text size="sm" c="dimmed">💸 Total de Saídas</Text>
+                <Text size="xl" fw={700} c="red">R$ {totalSaidas.toFixed(2)}</Text>
+              </Stack>
             </Card>
-          </Col>
-        </Row>
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <Card>
+              <Stack gap={8}>
+                <Text size="sm" c="dimmed">📊 Saldo Líquido</Text>
+                <Text 
+                  size="xl" 
+                  fw={700} 
+                  c={saldoLiquido >= 0 ? 'green' : 'red'}
+                >
+                  R$ {saldoLiquido.toFixed(2)}
+                </Text>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
 
-        <Card title="Despesas por Categoria" className={styles.chartCard}>
+        <Card className={styles.chartCard}>
+          <Card.Section p="md">
+            <Title order={3}>Despesas por Categoria</Title>
+          </Card.Section>
           {chartData.length > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-              <div style={{ flex: '0 0 500px' }}>
+            <Group gap={40} align="flex-start" style={{ padding: '16px' }}>
+              <Box style={{ flex: '0 0 500px' }}>
                 <ResponsiveContainer width="100%" height={500}>
                   <PieChart>
                     <Pie
@@ -154,44 +164,40 @@ export function ClientDashboardComponent({
                     />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
-              <div style={{ flex: 1 }}>
-                {chartData.map((item, index) => {
-                  const percent = ((item.value / totalExpenses) * 100).toFixed(1);
-                  return (
-                    <div 
-                      key={item.name} 
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        marginBottom: '16px',
-                        fontSize: '16px'
-                      }}
-                    >
-                      <div 
-                        style={{ 
-                          width: '16px', 
-                          height: '16px', 
-                          backgroundColor: COLORS[index % COLORS.length],
-                          marginRight: '12px',
-                          borderRadius: '3px'
-                        }}
-                      />
-                      <span style={{ fontWeight: 500 }}>
-                        {item.name}: R$ {item.value.toFixed(2)} ({percent}%)
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+              </Box>
+              <Box style={{ flex: 1 }}>
+                <Stack gap={16}>
+                  {chartData.map((item, index) => {
+                    const percent = ((item.value / totalExpenses) * 100).toFixed(1);
+                    return (
+                      <Group key={item.name} gap={12}>
+                        <Box 
+                          style={{ 
+                            width: 16, 
+                            height: 16, 
+                            backgroundColor: COLORS[index % COLORS.length],
+                            borderRadius: 3
+                          }}
+                        />
+                        <Text fw={500}>
+                          {item.name}: R$ {item.value.toFixed(2)} ({percent}%)
+                        </Text>
+                      </Group>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            </Group>
           ) : (
-            <p>Nenhuma despesa registrada para este cliente.</p>
+            <Text ta="center" c="dimmed">Nenhuma despesa registrada para este cliente.</Text>
           )}
         </Card>
 
         {/* Tabela de Despesas Editável */}
-        <Card title="Todas as Despesas" className={styles.expensesCard}>
+        <Card className={styles.expensesCard}>
+          <Card.Section p="md">
+            <Title order={3}>Lançamentos</Title>
+          </Card.Section>
           <ExpensesTable 
             expenses={allExpenses}
             onExpensesChange={fetchAllExpenses}
@@ -200,30 +206,40 @@ export function ClientDashboardComponent({
 
         {/* Modal de Upload */}
         <Modal
-          visible={uploadOpen}
-          onCancel={() => setUploadOpen(false)}
+          opened={uploadOpen}
+          onClose={() => setUploadOpen(false)}
           title="Anexar Planilhas de Gastos"
-          footer={[
-            <Button key="cancel" onClick={() => setUploadOpen(false)}>
-              Cancelar
-            </Button>,
-            <Button key="submit" type="primary" loading={uploading} onClick={handleUploadSubmit}>
-              {uploading ? 'Enviando...' : 'Enviar'}
-            </Button>,
-          ]}
+          size="md"
         >
-          <Form.Item label="Selecione os arquivos">
-            <Upload
-              beforeUpload={() => false}
+          <Stack gap={20}>
+            <Text size="sm" c="dimmed">
+              Selecione os arquivos Excel (.xlsx) com as despesas:
+            </Text>
+            <FileInput
+              placeholder="Clique para selecionar arquivos"
               multiple
-              fileList={fileList}
-              onChange={({ fileList: fl }) => setFileList(fl)}
-            >
-              <Button icon={<UploadOutlined />}>Selecionar arquivos</Button>
-            </Upload>
-          </Form.Item>
+              accept=".xlsx,.xls"
+              value={fileList}
+              onChange={setFileList}
+              leftSection={<IconUpload size={16} />}
+            />
+            <Group justify="flex-end" gap={12}>
+              <Button 
+                variant="outline" 
+                onClick={() => setUploadOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                loading={uploading} 
+                onClick={handleUploadSubmit}
+              >
+                {uploading ? 'Enviando...' : 'Enviar'}
+              </Button>
+            </Group>
+          </Stack>
         </Modal>
-      </Content>
-    </Layout>
+      </Box>
+    </Container>
   );
 }

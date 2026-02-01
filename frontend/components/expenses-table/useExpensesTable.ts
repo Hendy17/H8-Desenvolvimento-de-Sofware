@@ -1,26 +1,40 @@
 import { useState } from 'react';
-import { Form } from 'antd';
-import { notification } from 'antd';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import type { ExpenseRecord } from '@shared/types';
 
 export function useExpensesTable(onExpensesChange: () => void) {
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [form] = Form.useForm();
+  const form = useForm({
+    initialValues: {
+      category: '',
+      description: '',
+      amount: 0,
+      date: new Date()
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [editingData, setEditingData] = useState<Partial<ExpenseRecord>>({});
 
   const isEditing = (record: ExpenseRecord) => record.id === editingKey;
 
+  const toggleType = () => {
+    setEditingData({ 
+      ...editingData, 
+      type: editingData.type === 'ENTRADA' ? 'SAIDA' : 'ENTRADA' 
+    });
+  };
+
   const edit = (record: ExpenseRecord) => {
     setEditingKey(record.id);
     setEditingData({ ...record });
-    form.setFieldsValue({
+    form.setValues({
       category: record.category,
       description: record.description,
       amount: record.amount,
-      date: dayjs(record.date),
+      date: new Date(record.date),
     });
   };
 
@@ -40,19 +54,25 @@ export function useExpensesTable(onExpensesChange: () => void) {
           category: editingData.category,
           description: editingData.description,
           amount: editingData.amount,
+          type: editingData.type,
           date: editingData.date ? new Date(editingData.date).toISOString().split('T')[0] : undefined,
         },
         { withCredentials: true }
       );
 
-      notification.success({ message: 'Despesa atualizada com sucesso!' });
+      notifications.show({ 
+        title: 'Sucesso', 
+        message: 'Despesa atualizada com sucesso!', 
+        color: 'green' 
+      });
       setEditingKey(null);
       setEditingData({});
       onExpensesChange();
     } catch (error: any) {
-      notification.error({
-        message: 'Erro ao atualizar despesa',
-        description: error?.response?.data?.message || 'Tente novamente',
+      notifications.show({
+        title: 'Erro ao atualizar despesa',
+        message: error?.response?.data?.message || 'Tente novamente',
+        color: 'red'
       });
     } finally {
       setLoading(false);
@@ -69,12 +89,17 @@ export function useExpensesTable(onExpensesChange: () => void) {
         { withCredentials: true }
       );
 
-      notification.success({ message: 'Despesa deletada com sucesso!' });
+      notifications.show({ 
+        title: 'Sucesso', 
+        message: 'Despesa deletada com sucesso!', 
+        color: 'green' 
+      });
       onExpensesChange();
     } catch (error: any) {
-      notification.error({
-        message: 'Erro ao deletar despesa',
-        description: error?.response?.data?.message || 'Tente novamente',
+      notifications.show({
+        title: 'Erro ao deletar despesa',
+        message: error?.response?.data?.message || 'Tente novamente',
+        color: 'red'
       });
     } finally {
       setLoading(false);
@@ -90,5 +115,6 @@ export function useExpensesTable(onExpensesChange: () => void) {
     save,
     handleDelete,
     setEditingData,
+    toggleType,
   };
 }

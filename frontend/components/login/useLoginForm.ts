@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { message } from 'antd';
+import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation'; // Changed from 'next/router'
 import { LoginResponse } from '@shared/types';
 import type { LoginValues } from './types';
@@ -20,11 +20,19 @@ export default function useLoginForm() {
         localStorage.setItem('token', res.data.access_token);
       }
       
-      message.success(`Bem-vindo, ${values.email}`);
+      notifications.show({ 
+        title: 'Sucesso!', 
+        message: `Bem-vindo, ${values.email}`, 
+        color: 'green' 
+      });
       router.push('/dashboard');
     } catch (err: any) {
       console.error(err);
-      message.error(err?.response?.data?.message || 'Erro no login');
+      notifications.show({ 
+        title: 'Erro no login', 
+        message: err?.response?.data?.message || 'Credenciais inválidas', 
+        color: 'red' 
+      });
     } finally {
       setLoading(false);
     }

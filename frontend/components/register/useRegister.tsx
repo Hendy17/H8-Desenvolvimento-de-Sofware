@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation'; // Changed from 'next/router'
-import { message } from 'antd';
+import { notifications } from '@mantine/notifications';
 import type { RegisterValues } from './types';
 
 export default function useRegister() {
@@ -19,17 +19,17 @@ export default function useRegister() {
       try {
             const loginRes = await axios.post(`${apiUrl}/auth/login`, values, { withCredentials: true });
         // backend sets HttpOnly cookie; don't store token in localStorage
-        message.success('Bem-vindo!');
+        notifications.show({ title: 'Sucesso', message: 'Bem-vindo!', color: 'green' });
         setAutoLogging(false);
         router.push('/dashboard');
       } catch (loginErr: any) {
         setAutoLogging(false);
-        message.success('Usuário criado. Faça login.');
+        notifications.show({ title: 'Sucesso', message: 'Usuário criado. Faça login.', color: 'green' });
         router.push('/login');
       }
     } catch (err: any) {
       console.error(err);
-      message.error(err?.response?.data?.message || 'Erro ao cadastrar');
+      notifications.show({ title: 'Erro', message: err?.response?.data?.message || 'Erro ao cadastrar', color: 'red' });
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import { notification } from 'antd';
+import { notifications } from '@mantine/notifications';
 
 export default function useHeaderRight() {
   const [visible, setVisible] = useState(false);
@@ -16,7 +16,7 @@ export default function useHeaderRight() {
   const search = async (cnpj: string) => {
     const normalized = (cnpj || '').replace(/\D/g, '');
     if (!normalized) {
-      notification.warning({ message: 'CNPJ inválido' });
+      notifications.show({ title: 'Atenção', message: 'CNPJ inválido', color: 'yellow' });
       return null;
     }
     setLoading(true);
@@ -24,11 +24,11 @@ export default function useHeaderRight() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const res = await axios.get(`${apiUrl}/clients/search`, { params: { cnpj: normalized } });
       setClient(res.data);
-      notification.success({ message: 'Cliente encontrado' });
+      notifications.show({ title: 'Sucesso', message: 'Cliente encontrado', color: 'green' });
       return res.data;
     } catch (err: any) {
       setClient(null);
-      notification.error({ message: err?.response?.data?.message || 'Cliente não encontrado' });
+      notifications.show({ title: 'Erro', message: err?.response?.data?.message || 'Cliente não encontrado', color: 'red' });
       return null;
     } finally {
       setLoading(false);

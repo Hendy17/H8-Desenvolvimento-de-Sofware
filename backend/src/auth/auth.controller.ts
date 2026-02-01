@@ -76,15 +76,16 @@ export class AuthController {
     console.log('🔐 /auth/me - Token being used:', !!token);
     
     if (!token) {
-      res.status(401);
-      return { message: 'Não autenticado', authenticated: false };
+      return res.status(401).json({ message: 'Não autenticado', authenticated: false });
     }
     const payload = this.authService.verifyToken(token);
     if (!payload) {
-      res.status(401);
-      return { message: 'Token inválido', authenticated: false };
+      return res.status(401).json({ message: 'Token inválido', authenticated: false });
     }
     const user = await this.authService.findUserById(payload.sub);
+    if (!user) {
+      return res.status(401).json({ message: 'Usuário não encontrado', authenticated: false });
+    }
     console.log('✅ /auth/me - User found:', user?.email);
     return { id: user.id, email: user.email, tenantDbName: user.tenantDbName, authenticated: true };
   }
@@ -94,5 +95,12 @@ export class AuthController {
   async register(@Body() body: LoginDto) {
     const user = await this.authService.register(body.email, body.password);
     return { message: 'Novo usuário cadastrado com sucesso', user };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body() body: { email: string }) {
+    const result = await this.authService.sendCredentialsByEmail(body.email);
+    return { message: 'Credenciais enviadas para o email cadastrado' };
   }
 }

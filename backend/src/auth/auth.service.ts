@@ -170,4 +170,20 @@ export class AuthService {
     // return minimal info (no password)
     return { id: user.id, email: user.email, tenantDbName: user.tenantDbName };
   }
+
+  async sendCredentialsByEmail(email: string) {
+    const user = await this.usersRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('Email não encontrado');
+    }
+
+    // Simular envio de email - aqui você pode integrar com um serviço real de email
+    console.log('📧 Enviando credenciais por email para:', email);
+    console.log('📧 Credenciais:', { email: user.email, senha: 'senha enviada por email' });
+    
+    // TODO: Implementar envio real de email aqui
+    // Exemplo: await this.emailService.sendCredentials(user.email, originalPassword);
+    
+    return { success: true };
+  }
 }
