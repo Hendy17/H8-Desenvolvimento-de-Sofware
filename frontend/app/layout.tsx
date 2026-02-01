@@ -6,8 +6,11 @@ import '@mantine/notifications/styles.css'
 import '../styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sistema de Contabilidade',
-  description: 'Sistema de gestão contábil',
+  title: 'Flow8 - Sistema de Contabilidade',
+  description: 'Sistema de gestão contábil Flow8',
+  icons: {
+    icon: '/favicon.ico',
+  }
 }
 
 export default function RootLayout({
