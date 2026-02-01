@@ -229,7 +229,7 @@ export default function Home() {
               </ThemeIcon>
               <Box>
                 <Title order={2} size="h1" fw={700} c="dark.8">
-                  ContaFlow
+                  Flow8
                 </Title>
                 <Text size="sm" c="dimmed" fw={500}>
                   Sistema de Gestão Contábil
