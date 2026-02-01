@@ -32,6 +32,14 @@ export class AuthService {
     return this.usersRepo.findOne({ where: { id } });
   }
 
+  verifyToken(token: string) {
+    try {
+      return this.jwtService.verify(token);
+    } catch (error) {
+      throw new BadRequestException('Token inválido');
+    }
+  }
+
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
     if (!user) {
