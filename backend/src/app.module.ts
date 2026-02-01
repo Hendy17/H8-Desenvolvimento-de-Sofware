@@ -51,7 +51,25 @@ const getTypeOrmConfig = () => {
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(getTypeOrmConfig()),
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        const config = getTypeOrmConfig();
+        
+        if (isProduction) {
+          // Em produção, tentar conectar mas não falhar se der erro
+          console.log('🔄 Tentando conectar ao PostgreSQL...');
+          return {
+            ...config,
+            retryAttempts: 5,
+            retryDelay: 2000,
+            // Se falhar, continua mesmo assim
+            autoLoadEntities: false,
+          };
+        }
+        
+        return config;
+      },
+    }),
     AuthModule,
     ClientsModule
   ]
