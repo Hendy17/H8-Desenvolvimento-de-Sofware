@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -32,19 +32,6 @@ export class AuthService {
     return this.usersRepo.findOne({ where: { id } });
   }
 
-  async login(email: string, password: string) {
-    const user = await this.validateUser(email, password);
-    if (!user) {
-      throw new BadRequestException('Credenciais inválidas');
-    }
-
-    const payload = { email: user.email, sub: user.id, tenantDbName: user.tenantDbName };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: { id: user.id, email: user.email, role: user.role }
-    };
-  }
-
   async register(email: string, password: string) {
     const existing = await this.usersRepo.findOne({ where: { email } });
     if (existing) {
@@ -62,6 +49,7 @@ export class AuthService {
       const newUser = this.usersRepo.create({
         email,
         password: hashed,
+        name: email.split('@')[0], // Use email prefix as default name
         role: 'user',
         tenantDbName: dbName,
       });
