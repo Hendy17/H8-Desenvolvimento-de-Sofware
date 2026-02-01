@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
 import { usePeriodFilter } from '../../components/period-filter/usePeriodFilter';
-import { ExpenseRecord, UploadResponse, DashboardData } from '@shared/types';
+import { ExpenseRecord, UploadResponse, DashboardData } from '../../types/shared';
 
 export function useClienteDashboard() {
   const router = useRouter();

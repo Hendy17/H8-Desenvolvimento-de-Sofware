@@ -24,6 +24,10 @@
       ],
       "@shared/*": [
         "../shared/src/*"
+      ],
+      "@shared/types": [
+        "../shared/src/types/index.ts",
+        "./types/shared.ts"
       ]
     },
     "plugins": [

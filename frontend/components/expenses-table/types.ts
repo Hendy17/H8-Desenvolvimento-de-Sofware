@@ -1,4 +1,4 @@
-import type { ExpenseRecord } from '@shared/types';
+import type { ExpenseRecord } from '../../types/shared';
 
 export interface ExpensesTableProps {
   expenses: ExpenseRecord[];

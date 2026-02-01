@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import type { ExpenseRecord } from '@shared/types';
+import type { ExpenseRecord } from '../../types/shared';
 
 export function useExpensesTable(onExpensesChange: () => void) {
   const [editingKey, setEditingKey] = useState<string | null>(null);

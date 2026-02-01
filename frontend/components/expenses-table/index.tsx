@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import styles from './styles.module.css';
 import { useExpensesTable } from './useExpensesTable';
 import { ExpensesTableProps } from './types';
-import type { ExpenseRecord } from '@shared/types';
+import type { ExpenseRecord } from '../../types/shared';
 
 export function ExpensesTable({ expenses, onExpensesChange }: ExpensesTableProps) {
   const {

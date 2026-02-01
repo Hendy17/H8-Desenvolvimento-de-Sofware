@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { User, AuthResponse } from '@shared/types';
+import { User, AuthResponse } from '../../types/shared';
 
 export default function useDashboard() {
   const router = useRouter();

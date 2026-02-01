@@ -4,7 +4,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconSettings, IconUserPlus } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { Client } from '@shared/types';
+import { Client } from '../../types/shared';
 import useHeaderRight from './useHeaderRight';
 import styles from './styles.module.css';
 import axios from 'axios';
