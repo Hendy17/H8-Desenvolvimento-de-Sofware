@@ -19,22 +19,29 @@ async function bootstrap() {
     
     // Configurar CORS corretamente para funcionar com credentials
     app.enableCors({
-      origin: [
-        'http://localhost:3000', 
-        'http://localhost:3001',
-        'https://h8-desenvolvimento-de-sofware.vercel.app',
-        'https://h8-desenvolvimento-de-sofware-git-main-hendys-projects-64367dda.vercel.app',
-        'https://h8-desenvolvimento-de-sofware-32f5c62ze.vercel.app',
-        // Adicione outras URLs conforme necessário
-        'https://h8-desenvolvimento-de-sofware-bizosxqa1.vercel.app',
-        'https://h8-desenvolvimento-de-sofware-psiixgbii.vercel.app'
-      ],
+      origin: function (origin, callback) {
+        console.log('🔍 CORS Origin:', origin);
+        // Sempre permitir - para debug
+        callback(null, true);
+      },
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       exposedHeaders: ['set-cookie'],
-      preflightContinue: false,
-      optionsSuccessStatus: 204,
+    });
+
+    // Middleware adicional para CORS headers
+    app.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept, Origin');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
     });
     
     // Health check endpoint completo
