@@ -19,12 +19,24 @@ async function bootstrap() {
     
     // Configurar CORS corretamente para funcionar com credentials
     app.enableCors({
-      origin: [
-        'http://localhost:3000', 
-        'http://localhost:3001',
-        'https://h8-desenvolvimento-de-sofware-69207mqr3.vercel.app',
-        'https://h8-desenvolvimento-de-sofware.vercel.app'
-      ],
+      origin: (origin, callback) => {
+        // URLs permitidas
+        const allowedOrigins = [
+          'http://localhost:3000', 
+          'http://localhost:3001',
+          /^https:\/\/h8-desenvolvimento-de-sofware.*\.vercel\.app$/,
+          'https://h8-desenvolvimento-de-sofware.vercel.app'
+        ];
+        
+        // Se não há origin (ex: requests do Postman) ou se o origin está na lista permitida
+        if (!origin || allowedOrigins.some(allowed => 
+          typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+        )) {
+          callback(null, true);
+        } else {
+          callback(new Error('Não permitido pelo CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
