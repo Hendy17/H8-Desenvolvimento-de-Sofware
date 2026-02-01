@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import styles from './styles.module.css';
 import { useExpensesTable } from './useExpensesTable';
 import { ExpensesTableProps } from './types';
-import type { ExpenseRecord } from '../../hooks/cliente/useClienteDashboard';
+import type { ExpenseRecord } from '@shared/types';
 
 export function ExpensesTable({ expenses, onExpensesChange }: ExpensesTableProps) {
   const {

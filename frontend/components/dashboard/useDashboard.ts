@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
-
-type User = { id: string; email: string; tenantDbName?: string } | null;
+import { User, AuthResponse } from '@shared/types';
 
 export default function useDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -15,12 +14,12 @@ export default function useDashboard() {
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
-        const res = await axios.get(`${apiUrl}/auth/me`, { 
+        const res = await axios.get<User & { authenticated: boolean }>(`${apiUrl}/auth/me`, { 
           withCredentials: true,
           headers 
         });
         
-        if (res.data && res.data.email) {
+        if (res.data && res.data.email && res.data.authenticated) {
           setUser(res.data);
         } else {
           localStorage.removeItem('token');

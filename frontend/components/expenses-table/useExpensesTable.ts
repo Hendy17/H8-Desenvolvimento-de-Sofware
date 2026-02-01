@@ -3,7 +3,7 @@ import { Form } from 'antd';
 import { notification } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import type { ExpenseRecord } from '../../hooks/cliente/useClienteDashboard';
+import type { ExpenseRecord } from '@shared/types';
 
 export function useExpensesTable(onExpensesChange: () => void) {
   const [editingKey, setEditingKey] = useState<string | null>(null);

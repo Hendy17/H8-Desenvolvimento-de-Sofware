@@ -1,4 +1,4 @@
-import type { ExpenseRecord } from '../../hooks/cliente/useClienteDashboard';
+import type { ExpenseRecord } from '@shared/types';
 
 export interface ExpensesTableProps {
   expenses: ExpenseRecord[];

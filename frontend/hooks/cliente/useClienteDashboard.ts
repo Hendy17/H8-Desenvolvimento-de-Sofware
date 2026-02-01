@@ -1,22 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
 import { notification } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { DashboardData } from '../../types/cliente/types';
 import { usePeriodFilter } from '../../components/period-filter/usePeriodFilter';
-
-export interface ExpenseRecord {
-  id: string;
-  category: string;
-  description: string;
-  amount: number;
-  date: string;
-}
+import { ExpenseRecord, UploadResponse, DashboardData } from '@shared/types';
 
 export function useClienteDashboard() {
   const router = useRouter();
-  const { cnpj } = router.query;
+  const params = useParams();
+  const cnpj = params?.cnpj as string;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [allExpenses, setAllExpenses] = useState<ExpenseRecord[]>([]);
@@ -33,17 +26,25 @@ export function useClienteDashboard() {
     handleQuarterChange,
   } = usePeriodFilter();
 
+  // Processar dados para o gráfico
+  const chartData = data?.expenses?.map((exp: any) => ({
+    name: exp.category,
+    value: parseFloat(exp.total),
+  })) || [];
+
+  const totalExpenses = chartData.reduce((sum: number, item: any) => sum + item.value, 0);
+  const biggestCategory = chartData.length > 0 ? chartData[0] : null;
+
   const fetchExpensesData = async (period = periodType, month = selectedMonth, quarter = selectedQuarter) => {
     if (!cnpj) return;
 
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+      const normalizedCnpj = cnpj?.replace(/\D/g, '') || '';
       
       let url = `${apiUrl}/clients/${normalizedCnpj}/expenses/summary`;
       
-      // Adicionar parâmetros de filtro se necessário
       if (period === 'monthly' && month) {
         url += `?period=monthly&month=${month}`;
       } else if (period === 'quarterly' && quarter) {
@@ -51,7 +52,7 @@ export function useClienteDashboard() {
       }
       
       console.log('🔍 Buscando dados de:', url);
-      const response = await axios.get(url, {
+      const response = await axios.get<DashboardData>(url, {
         withCredentials: true,
       });
       setData(response.data);
@@ -68,9 +69,9 @@ export function useClienteDashboard() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
+      const normalizedCnpj = cnpj?.replace(/\D/g, '') || '';
       
-      const response = await axios.get(
+      const response = await axios.get<{ expenses: ExpenseRecord[] }>(
         `${apiUrl}/clients/${normalizedCnpj}/expenses`,
         { withCredentials: true }
       );
@@ -82,10 +83,8 @@ export function useClienteDashboard() {
 
   useEffect(() => {
     if (!cnpj) return;
-
     fetchExpensesData(periodType, selectedMonth, selectedQuarter);
     fetchAllExpenses();
-
   }, [cnpj, periodType, selectedMonth, selectedQuarter]);
 
   const handleVoltar = () => {
@@ -101,16 +100,13 @@ export function useClienteDashboard() {
     try {
       let totalProcessed = 0;
       let totalExpenses = 0;
-      // Normalizar CNPJ: remover tudo que não é número
-      const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
-      console.log('📤 Enviando para CNPJ normalizado:', normalizedCnpj);
-      console.log('📤 Comprimento do CNPJ:', normalizedCnpj.length);
+      const normalizedCnpj = cnpj?.replace(/\D/g, '') || '';
+      
       for (const f of fileList) {
         const form = new FormData();
-        // @ts-ignore
-        form.append('file', f.originFileObj);
+        form.append('file', f.originFileObj as File);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await axios.post(`${apiUrl}/clients/attachments/${normalizedCnpj}`, form, {
+        const response = await axios.post<UploadResponse>(`${apiUrl}/clients/attachments/${normalizedCnpj}`, form, {
           headers: { 'Content-Type': 'multipart/form-data' },
           withCredentials: true
         });
@@ -127,11 +123,11 @@ export function useClienteDashboard() {
           description: `${totalExpenses} despesa(s) adicionada(s). Atualizando dados...`,
           duration: 6,
         });
-        // Aguardar 2 segundos e recarregar os dados sem recarregar a página
+        
         setTimeout(async () => {
           try {
-            const normalizedCnpj = (cnpj as string)?.replace(/\D/g, '') || '';
-            const response = await axios.get(
+            const normalizedCnpj = cnpj?.replace(/\D/g, '') || '';
+            const response = await axios.get<DashboardData>(
               `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/clients/${normalizedCnpj}/expenses/summary`,
               { withCredentials: true }
             );
@@ -172,5 +168,8 @@ export function useClienteDashboard() {
     handleMonthChange,
     handleQuarterChange,
     fetchAllExpenses,
+    chartData,
+    totalExpenses,
+    biggestCategory,
   };
 }

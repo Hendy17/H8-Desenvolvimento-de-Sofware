@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { SettingOutlined } from '@ant-design/icons';
 import { Modal, Button, Form, Input, notification, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation'; // Changed from 'next/router'
+import { Client } from '@shared/types';
 import useHeaderRight from './useHeaderRight';
 import styles from './styles.module.css';
 import axios from 'axios';
@@ -72,7 +73,7 @@ export default function HeaderRight() {
     setCreating(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const res = await axios.post(`${apiUrl}/clients`, { cnpj, name, address });
+      const res = await axios.post<Client>(`${apiUrl}/clients`, { cnpj, name, address });
       notification.success({ message: 'Cliente criado', description: res.data.name || '' });
       setCreateOpen(false);
     } catch (err: any) {

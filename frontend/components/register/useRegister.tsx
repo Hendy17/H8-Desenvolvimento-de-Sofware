@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation'; // Changed from 'next/router'
 import { message } from 'antd';
 import type { RegisterValues } from './types';
 
