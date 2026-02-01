@@ -19,7 +19,16 @@ async function bootstrap() {
     
     // Configurar CORS corretamente para funcionar com credentials
     app.enableCors({
-      origin: true, // Aceita qualquer origin em produção
+      origin: [
+        'http://localhost:3000', 
+        'http://localhost:3001',
+        'https://h8-desenvolvimento-de-sofware.vercel.app',
+        'https://h8-desenvolvimento-de-sofware-git-main-hendys-projects-64367dda.vercel.app',
+        'https://h8-desenvolvimento-de-sofware-32f5c62ze.vercel.app',
+        // Adicione outras URLs conforme necessário
+        'https://h8-desenvolvimento-de-sofware-bizosxqa1.vercel.app',
+        'https://h8-desenvolvimento-de-sofware-psiixgbii.vercel.app'
+      ],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
