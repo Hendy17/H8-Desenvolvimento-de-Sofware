@@ -3,7 +3,8 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   try {
-    console.log('🚀 Iniciando aplicação...');
+    console.log('🚀 Iniciando aplicação... v2.1 - CORS Fix');
+    console.log('📅 Timestamp:', new Date().toISOString());
     
     // Validação de variáveis de ambiente críticas
     if (process.env.DATABASE_URL) {
@@ -17,31 +18,30 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log'],
     });
     
-    // Configurar CORS corretamente para funcionar com credentials
-    app.enableCors({
-      origin: function (origin, callback) {
-        console.log('🔍 CORS Origin:', origin);
-        // Sempre permitir - para debug
-        callback(null, true);
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-      exposedHeaders: ['set-cookie'],
-    });
-
-    // Middleware adicional para CORS headers
+    // Configurar CORS de forma mais agressiva
     app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+      const origin = req.headers.origin;
+      console.log('🔍 Request Origin:', origin);
+      
+      res.header('Access-Control-Allow-Origin', origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept, Origin');
       res.header('Access-Control-Allow-Credentials', 'true');
       
       if (req.method === 'OPTIONS') {
+        console.log('🔍 Handling OPTIONS request');
         res.sendStatus(200);
       } else {
         next();
       }
+    });
+
+    // Também configurar via enableCors como backup
+    app.enableCors({
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     });
     
     // Health check endpoint completo
