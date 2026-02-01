@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   try {
-    console.log('🚀 Iniciando aplicação... v2.1 - CORS Fix');
-    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('🚀 Iniciando aplicação... v2.2 - Simple CORS');
+    console.log('📅 Build Time:', new Date().toISOString());
     
     // Validação de variáveis de ambiente críticas
     if (process.env.DATABASE_URL) {
@@ -16,32 +16,12 @@ async function bootstrap() {
     
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],
-    });
-    
-    // Configurar CORS de forma mais agressiva
-    app.use((req, res, next) => {
-      const origin = req.headers.origin;
-      console.log('🔍 Request Origin:', origin);
-      
-      res.header('Access-Control-Allow-Origin', origin || '*');
-      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept, Origin');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      
-      if (req.method === 'OPTIONS') {
-        console.log('🔍 Handling OPTIONS request');
-        res.sendStatus(200);
-      } else {
-        next();
+      cors: {
+        origin: true,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
       }
-    });
-
-    // Também configurar via enableCors como backup
-    app.enableCors({
-      origin: true,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     });
     
     // Health check endpoint completo
@@ -49,10 +29,11 @@ async function bootstrap() {
     server.get('/', (req, res) => {
       res.json({ 
         status: 'ok', 
-        message: 'Backend funcionando', 
+        message: 'Backend funcionando v2.2', 
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
-        environment: process.env.NODE_ENV || 'development'
+        version: '2.2.0',
+        environment: process.env.NODE_ENV || 'development',
+        cors: 'enabled'
       });
     });
 
